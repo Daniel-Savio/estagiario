@@ -7,10 +7,11 @@ import { resolveHtmlPath } from './util';
 
 import fs from 'fs'
 import {Bot} from './bot';
+type credentialsType = {user: string, passwd: string}
 
-const sdpAdmin = {user: "treetech", passwd: "sd@admin#"}
-const sdgAdmin = {user: "admin", passwd: "senh@Intern@"}
-const standard = {user: "default", passwd: "Default123"}
+const sdpAdmin: credentialsType = {user: "treetech", passwd: "sd@admin#"}
+const sdgAdmin: credentialsType = {user: "admin", passwd: "senh@Intern@"}
+const standard: credentialsType = {user: "default", passwd: "Default123"}
 
 class AppUpdater {
   constructor() {
@@ -144,34 +145,34 @@ app.whenReady().then(() => {
   }).catch(console.log);
 
 
-ipcMain.on('system-update', async (event, arg) => {
+ipcMain.on('system-update', async (event, ipList) => {
   console.log("sistem update called")
-  update(arg)
+ 
+  const bots = buildBot(ipList, sdpAdmin);
+  bots.forEach(bot =>{
+    updateSystem(bot);
+  })
+
 });
 
 
 
 
 
-async function updateSystem(bot: Bot){
-  await bot.buildIntern()
-  await bot.login()
-  await bot.updateSystem()
-}
-
-async function update(IPs: string[]){
+ function buildBot(IPs: string[], credentials: credentialsType): Bot[]{
   let bots: Bot[] = []
   IPs.forEach(ip => {
-    bots.push( new Bot(ip, sdpAdmin) )
-  })
- 
-  bots.forEach(bot =>{
-     updateSystem(bot);
-
+    bots.push(new Bot(ip, credentials))
   })
 
+  return bots
+ }
+
+
+ async function updateSystem(bot: Bot){
+    await bot.buildIntern()
+    await bot.login()
+    await bot.updateSystem()
 
 }
-
-
 

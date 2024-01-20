@@ -6,6 +6,7 @@ export class Bot
     readonly ip: string
     readonly credentials: {user: string, passwd: string}
     public process: any
+    public mainPage: any
 
 
     constructor(ip: string, credentials: {user: string, passwd: string})
@@ -25,15 +26,15 @@ export class Bot
 
     public async login(){
         try {
-        const page = await this.process.newPage();
-        await page.goto(`http:\\${this.ip}/menu/home`);
-        await page.setViewport({width: 1920, height: 1080, deviceScaleFactor:1});
-        await page.click("#buttonEntrar.btn.btn-success");
-        await page.waitForSelector("#inputUsuario", {timeout: 5000});
-        await page.waitForTimeout(2000);
-        await page.type("#inputUsuario", this.credentials.user, {delay: 50})
-        await page.type("#inputSenha", this.credentials.passwd,  {delay: 50})
-        await page.click("#btn-submit")
+        this.mainPage = await this.process.newPage();
+        await this.mainPage.goto(`http:\\${this.ip}/menu/home`);
+        await this.mainPage.setViewport({width: 1920, height: 1080, deviceScaleFactor:1});
+        await this.mainPage.click("#buttonEntrar.btn.btn-success");
+        await this.mainPage.waitForSelector("#inputUsuario", {timeout: 5000});
+        await this.mainPage.waitForTimeout(2000);
+        await this.mainPage.type("#inputUsuario", this.credentials.user, {delay: 50})
+        await this.mainPage.type("#inputSenha", this.credentials.passwd,  {delay: 50})
+        await this.mainPage.click("#btn-submit")
         console.log(`terminei o SD+ ${this.ip}`)
         }catch(e: any) {
 
@@ -44,9 +45,9 @@ export class Bot
     }
 
     public async updateSystem(){
-        const page = await this.process.newPage();
-        await page.goto(`http:\\${this.ip}/menu/atualizacao/`);
-        await page.click(".btn.btn-primary");
+        await this.mainPage.waitForSelector(".panel-success", {timeout: 10000})
+        await this.mainPage.goto(`http:\\${this.ip}/menu/atualizacao/`);
+        await this.mainPage.click(".btn.btn-primary");
     }
 
 }
