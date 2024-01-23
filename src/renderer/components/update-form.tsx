@@ -5,12 +5,11 @@ const file = new File([''],"")
 ​
 export function UpdateForm() {
 
-
   const [sdp, setSdp] = useState<string[]>(['192.168.3.121']);
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [systemFile, setSystemFile] = useState<File>(file);
 
-  const inputIpRef = useRef("null");
+  const inputIpRef = useRef<HTMLInputElement>(null);
   const ipErrorRef = useRef("null");
   
   function handleIp(e: any){
@@ -60,22 +59,35 @@ export function UpdateForm() {
     setSdp([])
   }
 
-  function sendToUpdate() {
-    console.log(sdp)
-    if(!sdp.length){
-      setErrorMessage("Natan avisa: Por favor, insira ao menos um IP")
-    }
-    window.electron.send('system-update',sdp)
-  }
-
   function handleFile(e: any){
+    console.log(e.target.files[0])
     if(e.target.files){
       setSystemFile(e.target.files[0])
+      
     }else{
+      setSystemFile(file)
+    }
+    if (e.target.files[0] === undefined) {
       setSystemFile(file)
     }
 
   }
+
+  function sendToUpdate() {
+    console.log(sdp)
+    if(!sdp.length || !systemFile) {
+      setErrorMessage("Natan avisa: Por favor, insira ao menos um IP e um arquivo de atualização .sdu")
+    }else{
+
+      setErrorMessage("")
+      window.electron.send('system-update',{ipList: sdp, file:{filePath:systemFile.path, fileName:systemFile.name}})
+    }
+
+
+
+  }
+
+
 
   return (
     <div
