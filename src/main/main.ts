@@ -7,6 +7,8 @@ import { resolveHtmlPath } from './util';
 
 import fs from 'fs'
 import {Bot} from './bot';
+
+
 type credentialsType = {user: string, passwd: string}
 
 const sdpAdmin: credentialsType = {user: "treetech", passwd: "sd@admin#"}
@@ -104,7 +106,6 @@ const createWindow = async () => {
 };
 
 
-
 // Window controller
 ipcMain.on('closeApp', async (event, arg) => {
     mainWindow!.close()
@@ -121,7 +122,7 @@ ipcMain.on('maximize', async (event, arg) => {
       mainWindow!.restore();
     }else{
       mainWindow!.maximize();
-      console.log("minimized");
+      
     }
     
 });
@@ -145,14 +146,17 @@ app.whenReady().then(() => {
   }).catch(console.log);
 
 
-ipcMain.on('system-update', async (event, ipList) => {
-  console.log("sistem update called")
- 
-  const bots = buildBot(ipList, sdpAdmin);
-  bots.forEach(bot =>{
-    updateSystem(bot);
+ipcMain.on('system-update', async (event, data: {ipList: string[], file: {filePath: string, fileName: string}}) => {
+  const fileName = data.file.fileName;
+  await fs.copyFile(data.file.filePath, `${__dirname}/archive/sduFiles/${data.file.fileName}`, (error: any,) => {
+    console.log(error)
   })
 
+  const bots = buildBot(data.ipList, sdpAdmin);
+
+  bots.forEach(bot =>{
+   updateSystem(bot, fileName);
+  })
 });
 
 
@@ -169,10 +173,10 @@ ipcMain.on('system-update', async (event, ipList) => {
  }
 
 
- async function updateSystem(bot: Bot){
+ async function updateSystem(bot: Bot, fileName: string){
     await bot.buildIntern()
     await bot.login()
-    await bot.updateSystem()
+    await bot.updateSystem( fileName)
 
 }
 
