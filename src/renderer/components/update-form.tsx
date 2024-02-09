@@ -114,7 +114,7 @@ export function UpdateForm() {
           placeholder='ex.: 192.168.3.121'
           className="text-slate-800 h-fit text-center p-1  bg-slate-200"
         />
-        <button id="add-sdp-update" onClick={addArray} className=" p-1 rounded-r-lg font-bold text-slate-50  bg-treetech-700 b-round w-8">
+        <button id="add-sdp-update" onClick={addArray} className=" p-1 rounded-r-lg font-bold text-slate-50  bg-green-700 b-round w-8">
           +
         </button>
       </div>
@@ -124,13 +124,13 @@ export function UpdateForm() {
 
       <button onClick={removeAll} className='text-slate-50 p-1 m-2 bg-red-700 rounded-md' > Limpar lista </button>
 
-      <button onClick={sendToUpdate} className='text-slate-50 p-1 mb-2 bg-treetech-700 rounded-md' > Atualizar </button>
+      <button onClick={sendToUpdate} className='text-slate-50 p-1 mb-2 bg-green-700 rounded-md' > Atualizar </button>
 
       {sdp.map((ip: string, index: number) => {
         return (
           <div
             key={index}
-            className="mt-2 border-b-2 border-treetech-700 input-group justify-around align-bottom flex"
+            className="mt-2 border-b-2 border-green-700 input-group justify-around align-bottom flex"
           >
             <label className="rounded-l-lg p-2 "> IP </label>
             <span className="dark:text-slate-50 h-fit text-center p-2 ">
@@ -141,4 +141,6 @@ export function UpdateForm() {
       })}
     </div>
   );
+
+
 }

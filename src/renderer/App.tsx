@@ -36,12 +36,12 @@ export default function App() {
 
       <header
         id="title-bar"
-        className="flex justify-between pl-4 pr-4 pt-1 pb-1 items-center bg-sky-700 dark:bg-sky-950"
+        className="flex justify-between px-4 pb-1 items-center bg-sky-700 dark:bg-sky-950"
       >
         <div className="flex items-center ">
           <div className="flex items-center ">
-            <img src={require('./img/icon.svg')} className="h-10" />
-            <h1 className="text-lg p-2 font-bold text-treetech-50">
+            <img src={require('./img/icon.svg')} className="h-7" />
+            <h1 className="text-md px-2 font-bold text-slate-50">
               O Estagiário
             </h1>
           </div>
@@ -53,12 +53,12 @@ export default function App() {
             onChange={setDarkMode}
             className={`${
               darkMode ? 'bg-blue-600' : 'bg-gray-300'
-            } relative inline-flex h-4 w-9 items-center rounded-full mr-2`}
+            } relative inline-flex h-4 w-8 items-center rounded-full mr-2`}
           >
             <span
               className={`${
                 darkMode ? 'translate-x-5' : 'translate-x-1'
-              } inline-block h-3 w-3 transform rounded-full bg-white transition`}
+              } inline-block h-2 w-2 transform rounded-full bg-white transition`}
             />
           </Switch>
 
