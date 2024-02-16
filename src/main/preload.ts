@@ -30,7 +30,7 @@ const electronHandler = {
   },
 
 
-  on: (channel: string, func: any) => ipcRenderer.send(channel, (evt: any, ...args: any[]) =>func(...args)),
+  on: (channel: string, func: any) => ipcRenderer.on(channel, (evt: any, ...args: any[]) =>func(...args)),
   
 }
 

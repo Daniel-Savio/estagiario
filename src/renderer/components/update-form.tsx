@@ -1,13 +1,13 @@
-import React, { ReactElement, useState, useRef, ChangeEventHandler } from 'react';
+import React, { useState, useRef } from 'react';
 const ipRegex1 = '(\d+\.\d+.\d+.\d+):\d{5}$'
 const ipRegex2 = '(\d+\.\d+.\d+.\d+)$'
-const file = new File([''],"")
+
 ​
 export function UpdateForm() {
 
   const [sdp, setSdp] = useState<string[]>(['192.168.3.121']);
   const [errorMessage, setErrorMessage] = useState<string>("");
-  const [systemFile, setSystemFile] = useState<File>(file);
+ 
 
   const inputIpRef = useRef<HTMLInputElement>(null);
   const ipErrorRef = useRef("null");
@@ -59,28 +59,16 @@ export function UpdateForm() {
     setSdp([])
   }
 
-  function handleFile(e: any){
-    console.log(e.target.files[0])
-    if(e.target.files){
-      setSystemFile(e.target.files[0])
-      
-    }else{
-      setSystemFile(file)
-    }
-    if (e.target.files[0] === undefined) {
-      setSystemFile(file)
-    }
 
-  }
 
   function sendToUpdate() {
     console.log(sdp)
-    if(!sdp.length || !systemFile) {
+    if(!sdp.length) {
       setErrorMessage("Natan avisa: Por favor, insira ao menos um IP e um arquivo de atualização .sdu")
     }else{
 
       setErrorMessage("")
-      window.electron.send('system-update',{ipList: sdp, file:{filePath:systemFile.path, fileName:systemFile.name}})
+      window.electron.send('system-update',{ipList: sdp})
     }
 
 
@@ -90,18 +78,11 @@ export function UpdateForm() {
 
 
   return (
-    <div
-      id="update-form"
-      className="justify-center  text-center m-b-10 dark:text-slate-50 h-fit w-fit"
+    <div id="update-form"className="justify-center text-center m-b-10 dark:text-slate-50 h-fit w-fit"
     >
-      <h1 className="text-xl font-bold mb-1"> Natan</h1>
       <h1 className="text-lg font-bold mb-5"> Atualização de sistema do SD+</h1>
 
-      <div className='mb-5'>
-        <label className="block mb-2 text-md rounded-md cursor-pointer pl-2 pr-2 pt-1 pb-1 bg-sky-600 text-slate-50" htmlFor="system-file">Upload arquivo de sistema (.sdu)</label>
-        <span className='text-slate-600 dark:text-slate-50'> {`Arquivo: ${systemFile.name}`} </span>
-        <input onChange={handleFile} accept=".sdu" type="file" id="system-file" className="hidden"/>
-      </div>
+
 
       <div className="mb-10 input-group justify-center align-bottom flex">
         <label htmlFor="ip-sdp" className="rounded-l-lg p-1 font-bold text-slate-50 bg-slate-500">

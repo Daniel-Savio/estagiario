@@ -4,16 +4,15 @@ import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import { resolveHtmlPath } from './util';
 
+import fs from 'fs';
+import { Bot } from './bot';
+import { get } from 'http';
 
-import fs from 'fs'
-import {Bot} from './bot';
+type credentialsType = { user: string; passwd: string };
 
-
-type credentialsType = {user: string, passwd: string}
-
-const sdpAdmin: credentialsType = {user: "treetech", passwd: "sd@admin#"}
-const sdgAdmin: credentialsType = {user: "admin", passwd: "senh@Intern@"}
-const standard: credentialsType = {user: "default", passwd: "Default123"}
+const sdpAdmin: credentialsType = { user: 'treetech', passwd: 'sd@admin#' };
+const sdgAdmin: credentialsType = { user: 'admin', passwd: 'senh@Intern@' };
+const standard: credentialsType = { user: 'default', passwd: 'Default123' };
 
 class AppUpdater {
   constructor() {
@@ -27,7 +26,6 @@ if (process.env.NODE_ENV === 'production') {
   const sourceMapSupport = require('source-map-support');
   sourceMapSupport.install();
 }
-
 
 const isDebug = true;
 
@@ -69,8 +67,7 @@ const createWindow = async () => {
       preload: app.isPackaged
         ? path.join(__dirname, './preload.js')
         : path.join(__dirname, '../../.erb/dll/preload.js'),
-        devTools: true
-       
+      devTools: true,
     },
   });
 
@@ -105,26 +102,22 @@ const createWindow = async () => {
   new AppUpdater();
 };
 
-
 // Window controller
 ipcMain.on('closeApp', async (event, arg) => {
-    mainWindow!.close()
-    if (process.platform !== 'darwin') {
-      app.quit();
-    }
+  mainWindow!.close();
+  if (process.platform !== 'darwin') {
+    app.quit();
+  }
 });
 ipcMain.on('minimize', async (event, arg) => {
-    mainWindow!.minimize()
-
+  mainWindow!.minimize();
 });
 ipcMain.on('maximize', async (event, arg) => {
-    if(mainWindow!.isMaximized()){
-      mainWindow!.restore();
-    }else{
-      mainWindow!.maximize();
-      
-    }
-    
+  if (mainWindow!.isMaximized()) {
+    mainWindow!.restore();
+  } else {
+    mainWindow!.maximize();
+  }
 });
 
 app.on('window-all-closed', () => {
@@ -135,7 +128,9 @@ app.on('window-all-closed', () => {
   }
 });
 
-app.whenReady().then(() => {
+app
+  .whenReady()
+  .then(() => {
     createWindow();
 
     app.on('activate', () => {
@@ -143,40 +138,76 @@ app.whenReady().then(() => {
       // dock icon is clicked and there are no other windows open.
       if (mainWindow === null) createWindow();
     });
-  }).catch(console.log);
-
-
-ipcMain.on('system-update', async (event, data: {ipList: string[], file: {filePath: string, fileName: string}}) => {
-  const fileName = data.file.fileName;
-  await fs.copyFile(data.file.filePath, `${__dirname}/archive/sduFiles/${data.file.fileName}`, (error: any,) => {
-    console.log(error)
   })
+  .catch(console.log);
 
-  const bots = buildBot(data.ipList, sdpAdmin);
+// ? Listening from Renderer ? //
 
-  bots.forEach(bot =>{
-   updateSystem(bot, fileName);
-  })
-});
+ipcMain.on(
+  'system-update',
+  async (
+    event,
+    data: { ipList: string[]; }
+  ) => {
+    const bots = buildBot(data.ipList, sdpAdmin);
 
+    bots.forEach((bot) => {
+      updateSystem(bot, getLatestSdu());
+    });
+  }
+);
 
+ipcMain.on(
+  'system-file',
+  async (event, file: { filePath: string; fileName: string }) => {
+    
+    await fs.copyFile(
+      file.filePath,
+      `${__dirname}/archive/sduFiles/${file.fileName}`,
+      (error: any) => {
+        console.log(error);
+      }
+    );
+    getSduList()
+  }
+);
 
+ipcMain.on("sdu-files", async (event, data) => {
+  await mainWindow!.webContents.send("sdu-response", getSduList()) 
+})
 
+// ? Apps function ? //
 
- function buildBot(IPs: string[], credentials: credentialsType): Bot[]{
-  let bots: Bot[] = []
-  IPs.forEach(ip => {
-    bots.push(new Bot(ip, credentials))
-  })
-
-  return bots
- }
-
-
- async function updateSystem(bot: Bot, fileName: string){
-    await bot.buildIntern()
-    await bot.login()
-    await bot.updateSystem( fileName)
-
+function getSduList(): string[] {
+  const files = fs.readdirSync(path.join(__dirname, './archive/sduFiles'));
+  console.log(files)
+  return files;
 }
+
+function getLatestSdu(): string{
+  const files = fs.readdirSync(path.join(__dirname, './archive/sduFiles'));
+  if(files.length){
+
+    return files.pop()!
+  }else{
+
+    return ""
+  }
+}
+
+function buildBot(IPs: string[], credentials: credentialsType): Bot[] {
+  let bots: Bot[] = [];
+  IPs.forEach((ip) => {
+    bots.push(new Bot(ip, credentials));
+  });
+
+  return bots;
+}
+
+async function updateSystem(bot: Bot, fileName: string) {
+  await bot.buildIntern();
+  await bot.login();
+  await bot.updateSystem(fileName);
+}
+
 

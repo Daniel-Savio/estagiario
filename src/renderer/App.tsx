@@ -1,4 +1,5 @@
 import { MemoryRouter as Router, Routes, Route } from 'react-router-dom';
+
 import './App.css';
 import 'tailwindcss/tailwind.css';
 import { Home } from './pages/home';
@@ -41,13 +42,15 @@ export default function App() {
         <div className="flex items-center ">
           <div className="flex items-center ">
             <img src={require('./img/icon.svg')} className="h-7" />
-            <h1 className="text-md px-2 font-bold text-slate-50">
+            <h1 className="text-md px-2 font-bold text-slate-50 hover:cursor-pointer">
               O Estagiário
             </h1>
+           
+           
           </div>
         </div>
 
-        <div id="header-tools" className="flex items-center gap-2 ">
+        <div id="header-tools" className="flex items-center gap-2">
           <Switch
             checked={darkMode}
             onChange={setDarkMode}
@@ -83,6 +86,7 @@ export default function App() {
       <Router>
         <Routes>
           <Route path="/" element={<Home />} />
+      
         </Routes>
       </Router>
     </div>
