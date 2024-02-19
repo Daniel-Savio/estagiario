@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Button } from "./ui/button";
+import { Table, TableBody, TableCaption, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "./ui/table";
 
 
 export function Files() {
@@ -36,10 +37,10 @@ export function Files() {
     useEffect(() =>{
         window.electron.send("sdu-files", "sdu-files")
         window.electron.on("sdu-response", (sduListResponse: any)=>{
-            console.log(sduListResponse)
+            setSduList(sduListResponse)
             
         })
-    }, [sduList])
+    }, [])
 
 
 
@@ -47,7 +48,7 @@ export function Files() {
     <div className="text-slate-50 max-w-[800px] flex flex-col justify-center text-center">
       <div className="mb-5">
         <label
-          className="block mb-2 text-md rounded-md cursor-pointer pl-2 pr-2 pt-1 pb-1 bg-sky-600 text-slate-50"
+          className="block mb-2 text-md rounded-md cursor-pointer pl-2 pr-2 pt-1 pb-1 bg-secondary text-slate-50"
           htmlFor="system-file"
         >
           Upload arquivo de sistema (.sdu)
@@ -68,6 +69,35 @@ export function Files() {
       </div>
 
       <Button onClick={sendFile}>Enviar</Button>
+
+
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="text-center">Arquivo</TableHead>
+          </TableRow>
+        </TableHeader>
+
+        <TableBody>
+          {sduList.map((sduFile)=>{
+            return(
+              <TableRow>
+                <TableCell>
+                  {sduFile}
+                </TableCell>
+              </TableRow>
+            )
+          })}
+        </TableBody>
+
+        <TableFooter>
+            Versão mais recente: {sduList.pop()}
+        </TableFooter>
+
+        <TableCaption>
+          Lista de arquivos
+        </TableCaption>
+      </Table>
     </div>
     
   );

@@ -37,7 +37,7 @@ export default function App() {
 
       <header
         id="title-bar"
-        className="flex justify-between px-4 pb-1 items-center bg-sky-700 dark:bg-sky-950"
+        className="flex justify-between px-4 pb-1 items-center bg-primary"
       >
         <div className="flex items-center ">
           <div className="flex items-center ">
