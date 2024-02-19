@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Button } from './ui/button';
 import { Table } from './ui/table';
 import {
@@ -15,21 +15,21 @@ const ipRegex1 = '(d+.d+.d+.d+):d{5}$';
 const ipRegex2 = '(d+.d+.d+.d+)$';
 
 export function UpdateForm() {
-  const [sdp, setSdp] = useState<string[]>(['192.168.3.121']);
-  const [errorMessage, setErrorMessage] = useState<string>('');
+  const [sdp, setSdp] = useState<{ip: string, status: string}[]>([{'ip':'192.168.3.121', "status":"Aguradando"}]);
+  const [ status, setStatus ] = useState<{ip: string, status: string}>();
   const { toast } = useToast();
-
   const inputIpRef = useRef<HTMLInputElement>(null);
-  const ipErrorRef = useRef('null');
+
+  window.electron.on('status-message', (statusMessage: {ip: string, status: string})=>{setStatus(statusMessage)})
 
   function handleIp(e: any) {
     console.log(e.target.value);
   }
 
-  function checkIp(array: string[], ip: string) {
+  function checkIp(array: {ip: string, status: string}[], ip: string) {
     let state = 0;
     array.forEach((value) => {
-      if (value === ip) {
+      if (value.ip === ip) {
         state++;
       }
     });
@@ -52,7 +52,7 @@ export function UpdateForm() {
       } else {
         
         setSdp((old) => {
-          return [...old, inputIpRef.current!.value];
+          return [...old, {"ip":inputIpRef.current!.value, "status":"Aguardando"}];
         });
       }
     } else {
@@ -61,7 +61,6 @@ export function UpdateForm() {
         title: 'Natan Informa',
         description: 'Preencha com algum valor de IP'
       });
-      ipErrorRef.current! = errorMessage;
     }
   }
 
@@ -80,9 +79,36 @@ export function UpdateForm() {
 
     } else {
       
-      window.electron.send('system-update', { ipList: sdp });
+      window.electron.send('system-update', sdp);
+
     }
   }
+
+  useEffect(() => {
+
+    window.electron.on('status-message', async (statusMessage: {ip: string, status: string})=>{
+      console.log(statusMessage);
+      let aux: any = sdp
+      let index = 0
+      for(let i =0; i < sdp.length; i++) {
+        
+        if(sdp[i].ip === statusMessage.ip){
+          index = i
+        }
+      }
+      
+      aux[index] = statusMessage
+      console.log("Aux:")
+      console.log(aux)
+  
+      await setSdp(aux)
+      console.log("SDP:")
+      console.log(sdp)
+  
+    })
+
+  },[sdp, status]);
+
 
 
   return (
@@ -135,11 +161,11 @@ export function UpdateForm() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {sdp.map((ip: string, index: number) => {
+          {sdp.map((sdp: {ip: string, status: string}, index: number) => {
             return (
               <TableRow key={index} className="border-background border-b-2">
-                <TableCell className=" ">{ip}</TableCell>
-                <TableCell>status</TableCell>
+                <TableCell className=" ">{sdp.ip}</TableCell>
+                <TableCell>{sdp.status}</TableCell>
               </TableRow>
             );
           })}

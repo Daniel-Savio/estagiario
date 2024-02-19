@@ -1,14 +1,18 @@
 import puppet, { Browser, PuppeteerNode } from 'puppeteer';
+import { BrowserWindow } from 'electron';
+import { ipcMain } from 'electron';
 
 export class Bot {
   readonly ip: string;
   readonly credentials: { user: string; passwd: string };
+  readonly frontEnd: BrowserWindow;
   public process: any;
   public mainPage: any;
 
-  constructor(ip: string, credentials: { user: string; passwd: string }) {
+  constructor(ip: string, credentials: { user: string; passwd: string }, frontEnd: BrowserWindow) {
     this.ip = ip;
     this.credentials = credentials;
+    this.frontEnd = frontEnd;
   }
 
   public async buildIntern() {
@@ -16,6 +20,7 @@ export class Bot {
       headless: false,
       defaultViewport: { width: 1950, height: 1800 },
     });
+    return {ip: this.ip, status: "Inicializando"}
   }
 
   public async login() {
@@ -37,10 +42,12 @@ export class Bot {
         delay: 50,
       });
       await this.mainPage.click('#btn-submit');
-      console.log(`Consegui acessar o SD+ ${this.ip}`);
+      
+      return {ip: this.ip, status: "Logado no IED"}
     } catch (e: any) {
-      console.log(`Não foi possivel conectar com o SD+ IP: ${this.ip}`);
+      
       this.process.close();
+      return {ip: this.ip, status: "Não foi possível conectar ao IED"}
     }
   }
 
@@ -48,6 +55,7 @@ export class Bot {
     const fileVersion = fileName.substring(-4);
     console.log(fileName);
     await this.mainPage.waitForTimeout(2000);
+    await this.frontEnd.webContents.send("status-message", {ip: this.ip, status: "Validando versão de sistema"})
     await this.mainPage.waitForSelector('.li_atualizacao ', { timeout: 10000 });
     await this.mainPage.goto(`http:\\${this.ip}/menu/sobre/`);
     await this.mainPage.waitForTimeout(2000);
@@ -60,9 +68,8 @@ export class Bot {
     });
 
     if (fileName >= sdVersion) {
-      console.log(
-        `Iniciando o update do IED ${this.ip}: \n De: ${sdVersion} para: ${fileVersion}`
-      );
+      await this.frontEnd.webContents.send("status-message", {ip: this.ip, status: "Iniciando update de sistema"})
+
       const filePath = __dirname + '/archive/sduFiles/' + fileName;
       await this.mainPage.waitForTimeout(500);
       await this.mainPage.goto(`http:\\${this.ip}/menu/atualizacao/`);
@@ -75,20 +82,32 @@ export class Bot {
         setTimeout: 2000,
       });
       this.mainPage.click("#modalBotaoSim");
-      await this.mainPage.evaluate(() =>{
+      await this.mainPage.evaluate(async () =>{
         if(document.querySelector('#modalBotaoSim')){
-
+          
           document.querySelector('#modalBotaoSim').click()
         }
-
-        }
+        
+      }
       );
+      await this.mainPage.waitForSelector('.alert-success', {setTimeout: 30000})
+      await this.frontEnd.webContents.send("status-message", {ip: this.ip, status: "Arquivos enviados com sucesso"})
+
+      await this.mainPage.waitForSelector('.toast-success', {setTimeout: 300000})
+      setTimeout(async () => {
+        
+      }, 30000);
+      
+      await this.mainPage.goto(`http:\\${this.ip}/wait`);
+      await this.mainPage.waitForSelector("#progress-bar-atualizacao", {setTimeout: 60000})
+
+      await this.frontEnd.webContents.send("status-message", {ip: this.ip, status: "Atualizando!"})
+
+
  
 
       
     } else
-      console.log(
-        `Versão solicitada: ${fileVersion} é menor do que a já presente no IED ${this.ip} ----> ${sdVersion}`
-      );
+    await this.frontEnd.webContents.send("status-message", {ip: this.ip, status: `Versão solicitada menor do que a já presente no IED ${sdVersion}`})
   }
 }

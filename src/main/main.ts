@@ -6,7 +6,6 @@ import { resolveHtmlPath } from './util';
 
 import fs from 'fs';
 import { Bot } from './bot';
-import { get } from 'http';
 
 type credentialsType = { user: string; passwd: string };
 
@@ -147,9 +146,10 @@ ipcMain.on(
   'system-update',
   async (
     event,
-    data: { ipList: string[]; }
+    data: {ip: string, status: string}[]
   ) => {
-    const bots = buildBot(data.ipList, sdpAdmin);
+    console.log("System update")
+    const bots = buildBot(data, sdpAdmin);
 
     bots.forEach((bot) => {
       updateSystem(bot, getLatestSdu());
@@ -195,18 +195,18 @@ function getLatestSdu(): string{
   }
 }
 
-function buildBot(IPs: string[], credentials: credentialsType): Bot[] {
+function buildBot(SDs: {ip: string, status: string}[], credentials: credentialsType): Bot[] {
   let bots: Bot[] = [];
-  IPs.forEach((ip) => {
-    bots.push(new Bot(ip, credentials));
+  SDs.forEach((sd) => {
+    bots.push(new Bot(sd.ip, credentials, mainWindow!));
   });
 
   return bots;
 }
 
 async function updateSystem(bot: Bot, fileName: string) {
-  await bot.buildIntern();
-  await bot.login();
+  await mainWindow!.webContents.send("status-message", await bot.buildIntern())
+  await mainWindow!.webContents.send("status-message", await bot.login())
   await bot.updateSystem(fileName);
 }
 
