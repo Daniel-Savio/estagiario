@@ -1,6 +1,6 @@
-import puppet, { Browser, PuppeteerNode } from 'puppeteer';
+import puppet from 'puppeteer';
 import { BrowserWindow } from 'electron';
-import { ipcMain } from 'electron';
+
 
 export class Bot {
   readonly ip: string;
@@ -56,6 +56,8 @@ export class Bot {
     console.log(fileName);
     await this.mainPage.waitForTimeout(2000);
     await this.frontEnd.webContents.send("status-message", {ip: this.ip, status: "Validando versão de sistema"})
+
+    
     await this.mainPage.waitForSelector('.li_atualizacao ', { timeout: 10000 });
     await this.mainPage.goto(`http:\\${this.ip}/menu/sobre/`);
     await this.mainPage.waitForTimeout(2000);
@@ -67,7 +69,7 @@ export class Bot {
         .replace('Versão: ', '');
     });
 
-    if (fileName >= sdVersion) {
+    if (fileVersion >= sdVersion) {
       await this.frontEnd.webContents.send("status-message", {ip: this.ip, status: "Iniciando update de sistema"})
 
       const filePath = __dirname + '/archive/sduFiles/' + fileName;
@@ -81,22 +83,24 @@ export class Bot {
       await this.mainPage.waitForSelector('#modalBotaoSim', {
         setTimeout: 2000,
       });
+      await this.frontEnd.webContents.send("status-message", {ip: this.ip, status: "Enviando arquivos"})
       this.mainPage.click("#modalBotaoSim");
       await this.mainPage.evaluate(async () =>{
-        if(document.querySelector('#modalBotaoSim')){
+        const yesButton = await document.querySelector('#modalBotaoSim')
+        if (yesButton!){
           
-          document.querySelector('#modalBotaoSim').click()
+          yesButton.click()
         }
         
       }
       );
-      await this.mainPage.waitForSelector('.alert-success', {setTimeout: 30000})
+      await this.mainPage.waitForSelector('.alert-success', {setTimeout: 60000})
       await this.frontEnd.webContents.send("status-message", {ip: this.ip, status: "Arquivos enviados com sucesso"})
-
+      
       await this.mainPage.waitForSelector('.toast-success', {setTimeout: 300000})
-      setTimeout(async () => {
-        
-      }, 30000);
+
+
+      await this.frontEnd.webContents.send("status-message", {ip: this.ip, status: "Arquivos aceitos"})
       
       await this.mainPage.goto(`http:\\${this.ip}/wait`);
       await this.mainPage.waitForSelector("#progress-bar-atualizacao", {setTimeout: 60000})
@@ -109,5 +113,13 @@ export class Bot {
       
     } else
     await this.frontEnd.webContents.send("status-message", {ip: this.ip, status: `Versão solicitada menor do que a já presente no IED ${sdVersion}`})
+  }
+
+  public async oscDowload(){
+
+  }
+
+  public async accessConfigurationArea(){
+    await this.mainPage.goto(`http:\\${this.ip}/menu/configuracao/`);
   }
 }

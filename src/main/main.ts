@@ -163,25 +163,57 @@ ipcMain.on(
     
     await fs.copyFile(
       file.filePath,
-      `${__dirname}/archive/sduFiles/${file.fileName}`,
+      `${__dirname}/archive/sduFiles/SDp/${file.fileName}`,
       (error: any) => {
         console.log(error);
       }
     );
-    getSduList()
+    getSduList("SD+")
+  }
+);
+
+ipcMain.on(
+  'system-file-sdg',
+  async (event, file: { filePath: string; fileName: string }) => {
+    
+    await fs.copyFile(
+      file.filePath,
+      `${__dirname}/archive/sduFiles/SDG/${file.fileName}`,
+      (error: any) => {
+        console.log(error);
+      }
+    );
+    getSduList("SDG")
   }
 );
 
 ipcMain.on("sdu-files", async (event, data) => {
-  await mainWindow!.webContents.send("sdu-response", getSduList()) 
+  await mainWindow!.webContents.send("sdu-response", getSduList("SD+")) 
 })
+
+ipcMain.on("sdu-files-sdg", async (event, data) => {
+  await mainWindow!.webContents.send("sdu-response-sdg", getSduList("SDG")) 
+})
+
 
 // ? Apps function ? //
 
-function getSduList(): string[] {
-  const files = fs.readdirSync(path.join(__dirname, './archive/sduFiles'));
-  console.log(files)
-  return files;
+function getSduList(gateway: string): string[] {
+  let files 
+  if(gateway === "SD+"){
+
+    files = fs.readdirSync(path.join(__dirname, './archive/sduFiles/SDp/'));
+      return files;
+  }
+    if(gateway === "SDG"){
+
+    files = fs.readdirSync(path.join(__dirname, './archive/sduFiles/SDG/'));
+      return files;
+  }
+
+  return ["nothing found"]
+  
+
 }
 
 function getLatestSdu(): string{
@@ -209,5 +241,3 @@ async function updateSystem(bot: Bot, fileName: string) {
   await mainWindow!.webContents.send("status-message", await bot.login())
   await bot.updateSystem(fileName);
 }
-
-

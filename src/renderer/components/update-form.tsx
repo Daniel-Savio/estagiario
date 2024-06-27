@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useContext } from 'react';
 import { Button } from './ui/button';
 import { Table } from './ui/table';
 import {
@@ -11,22 +11,38 @@ import {
 } from './ui/table';
 import { Toaster } from './ui/toaster';
 import { useToast } from './ui/use-toast';
+import { GatewayContext } from '../pages/home';
 const ipRegex1 = '(d+.d+.d+.d+):d{5}$';
 const ipRegex2 = '(d+.d+.d+.d+)$';
 
+
+
 export function UpdateForm() {
-  const [sdp, setSdp] = useState<{ip: string, status: string}[]>([{'ip':'192.168.3.121', "status":"Aguradando"}]);
-  const [ status, setStatus ] = useState<{ip: string, status: string}>();
+  
+  
+  
+  let context = useContext(GatewayContext); 
+  const [sdp, setSdp] = useState<{ ip: string; status: string }[]>([
+    { ip: '192.168.3.121', status: 'Aguradando' },
+  ]);
+
+  const [status, setStatus] = useState<{ ip: string; status: string }>();
   const { toast } = useToast();
   const inputIpRef = useRef<HTMLInputElement>(null);
 
-  window.electron.on('status-message', (statusMessage: {ip: string, status: string})=>{setStatus(statusMessage)})
+
+  window.electron.on(
+    'status-message',
+    (statusMessage: { ip: string; status: string }) => {
+      setStatus(statusMessage);
+    }
+  );
 
   function handleIp(e: any) {
     console.log(e.target.value);
   }
 
-  function checkIp(array: {ip: string, status: string}[], ip: string) {
+  function checkIp(array: { ip: string; status: string }[], ip: string) {
     let state = 0;
     array.forEach((value) => {
       if (value.ip === ip) {
@@ -47,19 +63,21 @@ export function UpdateForm() {
         toast({
           variant: 'destructive',
           title: 'Natan Informa',
-          description: 'Preencha com algum valor diferente de IP'
+          description: 'Preencha com algum valor diferente de IP',
         });
       } else {
-        
         setSdp((old) => {
-          return [...old, {"ip":inputIpRef.current!.value, "status":"Aguardando"}];
+          return [
+            ...old,
+            { ip: inputIpRef.current!.value, status: 'Aguardando' },
+          ];
         });
       }
     } else {
       toast({
         variant: 'destructive',
         title: 'Natan Informa',
-        description: 'Preencha com algum valor de IP'
+        description: 'Preencha com algum valor de IP',
       });
     }
   }
@@ -74,49 +92,47 @@ export function UpdateForm() {
       toast({
         variant: 'destructive',
         title: 'Natan Informa',
-        description: 'Natan avisa: Por favor, insira ao menos um IP e um arquivo de atualização .sdu'
+        description:
+          'Natan avisa: Por favor, insira ao menos um IP e um arquivo de atualização .sdu',
       });
-
     } else {
-      
       window.electron.send('system-update', sdp);
-
     }
   }
 
   useEffect(() => {
-
-    window.electron.on('status-message', async (statusMessage: {ip: string, status: string})=>{
-      console.log(statusMessage);
-      let aux: any = sdp
-      let index = 0
-      for(let i =0; i < sdp.length; i++) {
-        
-        if(sdp[i].ip === statusMessage.ip){
-          index = i
+    window.electron.on(
+      'status-message',
+      async (statusMessage: { ip: string; status: string }) => {
+        console.log(statusMessage);
+        let aux: any = sdp;
+        let index = 0;
+        for (let i = 0; i < sdp.length; i++) {
+          if (sdp[i].ip === statusMessage.ip) {
+            index = i;
+          }
         }
+
+        aux[index] = statusMessage;
+        console.log('Aux:');
+        console.log(aux);
+
+        await setSdp(aux);
+        console.log('SDP:');
+        console.log(sdp);
       }
-      
-      aux[index] = statusMessage
-      console.log("Aux:")
-      console.log(aux)
-  
-      await setSdp(aux)
-      console.log("SDP:")
-      console.log(sdp)
-  
-    })
-
-  },[sdp, status]);
-
-
+    );
+  }, [sdp, status]);
 
   return (
     <div
       id="update-form"
       className="justify-center text-center m-b-10 dark:text-slate-50 h-fit w-fit"
     >
-      <h1 className="text-lg font-bold mb-5"> Atualização de sistema do SD+</h1>
+      <h1 className="text-lg font-bold mb-5">
+        {' '}
+        Atualização de sistema do {context.check ? "SDG" : "SD+"}
+      </h1>
 
       <div className="mb-10 input-group justify-center align-bottom flex">
         <label
@@ -132,7 +148,7 @@ export function UpdateForm() {
           type="text"
           id="ip-sdp"
           placeholder="ex.: 192.168.3.121"
-          className="text-slate-800 h-fit text-center p-1  bg-slate-200"
+          className="text-slate-800 h-fit text-center p-1 bg-slate-200"
         />
         <button
           id="add-sdp-update"
@@ -153,7 +169,7 @@ export function UpdateForm() {
         Atualizar{' '}
       </Button>
 
-      <Table className="bg-secondary rounded px-2">
+      <Table className="bg-secondary rounded px-2  min-w-[500px]">
         <TableHeader>
           <TableRow>
             <TableHead className="text-center">IP</TableHead>
@@ -161,7 +177,7 @@ export function UpdateForm() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {sdp.map((sdp: {ip: string, status: string}, index: number) => {
+          {sdp.map((sdp: { ip: string; status: string }, index: number) => {
             return (
               <TableRow key={index} className="border-background border-b-2">
                 <TableCell className=" ">{sdp.ip}</TableCell>

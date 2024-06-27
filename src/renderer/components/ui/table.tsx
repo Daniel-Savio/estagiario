@@ -1,5 +1,5 @@
 import * as React from "react"
-
+import { motion } from 'framer-motion';
 import { cn } from "renderer/components"
 
 const Table = React.forwardRef<
@@ -58,12 +58,12 @@ const TableRow = React.forwardRef<
   <tr
     ref={ref}
     className={cn(
-      "border-b transition-color data-[state=selected]:bg-muted",
+      'border-b transition-color data-[state=selected]:bg-muted',
       className
     )}
     {...props}
   />
-))
+));
 TableRow.displayName = "TableRow"
 
 const TableHead = React.forwardRef<
