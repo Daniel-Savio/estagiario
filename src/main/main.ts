@@ -145,17 +145,34 @@ app
 ipcMain.on(
   'system-update',
   async (
-    event,
+    _event,
     data: {ip: string, status: string}[]
   ) => {
     console.log("System update")
-    const bots = buildBot(data, sdpAdmin);
+    const bots = buildBot(data, standard);
 
     bots.forEach((bot) => {
-      updateSystem(bot, getLatestSdu());
+      updateSystem(bot, getLatestSdu("SD+"));
     });
   }
 );
+
+ipcMain.on(
+  'system-update-sdg',
+  async (
+    _event,
+    data: {ip: string, status: string}[]
+  ) => {
+    console.log("System update")
+    const bots = buildBot(data, standard);
+
+    bots.forEach((bot) => {
+      updateSystem(bot, getLatestSdu("SDG"));
+    });
+  }
+);
+
+
 
 ipcMain.on(
   'system-file',
@@ -216,15 +233,33 @@ function getSduList(gateway: string): string[] {
 
 }
 
-function getLatestSdu(): string{
-  const files = fs.readdirSync(path.join(__dirname, './archive/sduFiles'));
-  if(files.length){
+function getLatestSdu(gateway: string): string{
+  const filesSDp = fs.readdirSync(path.join(__dirname, './archive/sduFiles/SDp/'));
+  const filesSDG = fs.readdirSync(path.join(__dirname, './archive/sduFiles/SDG/'));
+    if(gateway === "SD+"){
+      if(filesSDp.length){
+        console.log("Lendo a pasta do SD+")
+        return filesSDp.pop()!
+      }
+      else{
 
-    return files.pop()!
-  }else{
-
+        return ""
+      } 
+    }
+  
+    if(gateway ==="SDG"){
+      if(filesSDG.length){
+        console.log("Lendo a pasta do SDG")
+        return filesSDG.pop()!
+      }
+      else{
+        return ""
+      } 
+    }
     return ""
-  }
+
+
+
 }
 
 function buildBot(SDs: {ip: string, status: string}[], credentials: credentialsType): Bot[] {

@@ -15,13 +15,8 @@ import { GatewayContext } from '../pages/home';
 const ipRegex1 = '(d+.d+.d+.d+):d{5}$';
 const ipRegex2 = '(d+.d+.d+.d+)$';
 
-
-
 export function UpdateForm() {
-  
-  
-  
-  let context = useContext(GatewayContext); 
+  let context = useContext(GatewayContext);
   const [sdp, setSdp] = useState<{ ip: string; status: string }[]>([
     { ip: '192.168.3.121', status: 'Aguradando' },
   ]);
@@ -29,7 +24,6 @@ export function UpdateForm() {
   const [status, setStatus] = useState<{ ip: string; status: string }>();
   const { toast } = useToast();
   const inputIpRef = useRef<HTMLInputElement>(null);
-
 
   window.electron.on(
     'status-message',
@@ -62,7 +56,7 @@ export function UpdateForm() {
       if (checkIp(sdp, inputIpRef.current!.value) === false) {
         toast({
           variant: 'destructive',
-          title: 'Natan Informa',
+          title: 'Aviso',
           description: 'Preencha com algum valor diferente de IP',
         });
       } else {
@@ -76,7 +70,7 @@ export function UpdateForm() {
     } else {
       toast({
         variant: 'destructive',
-        title: 'Natan Informa',
+        title: 'Aviso',
         description: 'Preencha com algum valor de IP',
       });
     }
@@ -91,12 +85,16 @@ export function UpdateForm() {
     if (!sdp.length) {
       toast({
         variant: 'destructive',
-        title: 'Natan Informa',
+        title: 'Aviso',
         description:
-          'Natan avisa: Por favor, insira ao menos um IP e um arquivo de atualização .sdu',
+          'Aviso: Por favor, insira ao menos um IP e um arquivo de atualização .sdu',
       });
-    } else {
+    }
+    if (!context.check) {
       window.electron.send('system-update', sdp);
+    }
+    if (context.check) {
+      window.electron.send('system-update-sdg', sdp);
     }
   }
 
@@ -131,7 +129,7 @@ export function UpdateForm() {
     >
       <h1 className="text-lg font-bold mb-5">
         {' '}
-        Atualização de sistema do {context.check ? "SDG" : "SD+"}
+        Atualização de sistema do {context.check ? 'SDG' : 'SD+'}
       </h1>
 
       <div className="mb-10 input-group justify-center align-bottom flex">
