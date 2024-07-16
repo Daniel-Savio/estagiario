@@ -69,10 +69,26 @@ export class Bot {
         .replace('Versão: ', '');
     });
 
+    if(fileVersion.charAt(0) === "2" && sdVersion.charAt(0)=== "3"){
+      await this.frontEnd.webContents.send("status-message", {ip: this.ip, status: "Não é possível enviar um arquivo do SD+ para o SDG"})
+      return
+    }
+
+    if(fileVersion.charAt(0) === "3" && sdVersion.charAt(0)=== "2"){
+      await this.frontEnd.webContents.send("status-message", {ip: this.ip, status: "Não é possível enviar um arquivo do SDG para o SD+"})
+      return
+    }
+
     if (fileVersion >= sdVersion) {
       await this.frontEnd.webContents.send("status-message", {ip: this.ip, status: "Iniciando update de sistema"})
 
-      const filePath = __dirname + '/archive/sduFiles/' + fileName;
+      let filePath
+      if(fileVersion.charAt(0) === "2"){
+        filePath= __dirname + '/archive/sduFiles/SDp/' + fileName;
+      }else{
+        filePath= __dirname + '/archive/sduFiles/SD+/' + fileName;
+
+      }
       await this.mainPage.waitForTimeout(500);
       await this.mainPage.goto(`http:\\${this.ip}/menu/atualizacao/`);
       await this.mainPage.waitForSelector('#upload-file');
