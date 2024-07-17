@@ -86,9 +86,10 @@ export class Bot {
       if(fileVersion.charAt(0) === "2"){
         filePath= __dirname + '/archive/sduFiles/SDp/' + fileName;
       }else{
-        filePath= __dirname + '/archive/sduFiles/SD+/' + fileName;
+        filePath= __dirname + '/archive/sduFiles/SDG/' + fileName;
 
       }
+      console.log("Caminho do arquivo utilizado", filePath)
       await this.mainPage.waitForTimeout(500);
       await this.mainPage.goto(`http:\\${this.ip}/menu/atualizacao/`);
       await this.mainPage.waitForSelector('#upload-file');
